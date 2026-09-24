@@ -11,7 +11,7 @@ SSH: `ssh -i ~/.ssh/id_ed25519_mini "<account>@<ip>"`. Reports: mini `~/lg-stati
 Done today: USB/power/EPM hardening + Connect watchdog on all 3; tailnet join, key expiry disabled; SSH+RDP;
 BQ2D6JS ghost "ZD420-203dpi" queue deleted (18 dead jobs), default → ZD420 RIGHT; UKL2D68 ZD420 direct-thermal config sent.
 
-Open: York confirms ZD420 green + test label; crew picks "ZD420 RIGHT" in ShipStation Printing Setup on BQ2D6JS;
+Right ZD420 FIXED 9/24 (ZD420c in ribbon mode, no cartridge → SGD direct thermal). Open: crew picks "ZD420 RIGHT" in ShipStation Printing Setup on BQ2D6JS;
 where is the LEFT ZD420 now; stale Connect registrations (after hours); all 3 on Wi-Fi → cable them; lgadmin gets
 created on next re-run (not urgent). Auth key stays valid (rotate before 2026-12-23).
 
