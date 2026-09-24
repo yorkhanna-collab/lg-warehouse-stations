@@ -274,7 +274,7 @@ Try-Run 'zebra-online' {
 # 4. SHIPSTATION CONNECT
 # =====================================================================================
 Step 'ShipStation Connect'
-$ConnectExe = Join-Path $env:LOCALAPPDATA 'ShipStationConnect\ShipStation Connect.exe'
+$ConnectExe = if ($Inv.connect_exe) { $Inv.connect_exe } else { Join-Path $env:LOCALAPPDATA 'ShipStationConnect\ShipStation Connect.exe' }
 if (-not (Test-Path $ConnectExe)) {
   Try-Run 'connect-install' {
     $setup = Join-Path $LgDir 'ShipStation Connect Setup.exe'
@@ -299,8 +299,8 @@ Try-Run 'connect-watchdog' {
   $wd = Join-Path $LgDir 'connect-watchdog.ps1'
   @'
 # LG Connect watchdog: relaunch ShipStation Connect if it died, clear Zebra "offline" flags. Runs every 5 min as the logged-in user.
-$exe = Join-Path $env:LOCALAPPDATA 'ShipStationConnect\ShipStation Connect.exe'
-if ((Test-Path $exe) -and -not (Get-Process -Name 'ShipStation Connect' -ErrorAction SilentlyContinue)) {
+$exe = @((Join-Path $env:ProgramFiles 'ShipStation Connect\ShipStation Connect.exe'), (Join-Path $env:LOCALAPPDATA 'ShipStationConnect\ShipStation Connect.exe')) | Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($exe -and -not (Get-Process -Name 'ShipStation Connect' -ErrorAction SilentlyContinue)) {
   Start-Process -FilePath $exe
   Add-Content -Path 'C:\LG\watchdog.log' -Value ("{0} restarted ShipStation Connect for {1}" -f (Get-Date -Format s), $env:USERNAME)
 }
@@ -366,7 +366,7 @@ if (-not $SkipSsh) {
     try {
       if (-not (Get-LocalUser -Name 'lgadmin' -ErrorAction SilentlyContinue)) {
         $rnd = -join ((48..57 + 65..90 + 97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
-        New-LocalUser -Name 'lgadmin' -Password (ConvertTo-SecureString $rnd -AsPlainText -Force) -FullName 'LG remote admin' -Description 'Remote management over the tailnet (SSH key only)' -PasswordNeverExpires -AccountNeverExpires | Out-Null
+        New-LocalUser -Name 'lgadmin' -Password (ConvertTo-SecureString $rnd -AsPlainText -Force) -FullName 'LG remote admin' -Description 'LG remote management (SSH key only)' -PasswordNeverExpires -AccountNeverExpires | Out-Null
         Note 'ssh' "created local admin account 'lgadmin' (SSH key only)"
       }
       Add-LocalGroupMember -Group 'Administrators' -Member 'lgadmin' -ErrorAction SilentlyContinue
