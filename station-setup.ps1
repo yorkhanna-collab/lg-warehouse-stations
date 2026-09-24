@@ -380,7 +380,7 @@ if (-not $SkipSsh) {
       try {
         # only touch profiles that map to a real, enabled local account (skip service/system profiles)
         $lu = Get-LocalUser -Name $acct -ErrorAction SilentlyContinue
-        if (-not $lu -or -not $lu.Enabled) { continue }
+        if (-not $lu -or -not $lu.Enabled) { Note 'ssh' ("profile '{0}' skipped: no enabled local account of that name (Microsoft-account or domain login?)" -f $acct) 'WARN'; continue }
         New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
         $uexist = @(); if (Test-Path $uakf) { $uexist = Get-Content $uakf }
         $umerged = @($uexist + $AuthorizedKeys | Where-Object { $_ -and $_.Trim() } | Select-Object -Unique)
@@ -415,7 +415,15 @@ Step 'Summary'
 $after = [ordered]@{ finished_at = (Get-Date).ToString('s'); summary = $Summary }
 if (Test-Path $TsExe) { try { $after.tailscale_ip = (& $TsExe ip -4 2>$null | Select-Object -First 1) } catch {} }
 $Inv.after = $after
-$Inv | ConvertTo-Json -Depth 6 | Set-Content -Path (Join-Path $LgDir 'station-report.json') -Encoding UTF8
+try { $Inv.administrators = @(Get-LocalGroupMember -Group 'Administrators' -ErrorAction Stop | Select-Object -ExpandProperty Name) } catch {}
+try { $Inv.profiles = @(Get-ChildItem 'C:\Users' -Directory | Select-Object -ExpandProperty Name) } catch {}
+$ReportJson = $Inv | ConvertTo-Json -Depth 6
+$ReportJson | Set-Content -Path (Join-Path $LgDir 'station-report.json') -Encoding UTF8
+# Send the report to the Mac mini over the tailnet (receiver is bound to the tailscale address only).
+try {
+  $r = Invoke-RestMethod -Method Post -Uri 'http://100.97.249.102:7788/report' -ContentType 'application/json' -Body ([Text.Encoding]::UTF8.GetBytes($ReportJson)) -TimeoutSec 15
+  Note 'report' ("uploaded to the Mac mini ({0})" -f ([string]$r).Trim())
+} catch { Note 'report' ("upload to the Mac mini failed: {0} (fine if Tailscale is not up yet)" -f $_.Exception.Message) 'WARN' }
 
 $fails = @($Summary | Where-Object level -eq 'FAIL').Count
 $warns = @($Summary | Where-Object level -eq 'WARN').Count
