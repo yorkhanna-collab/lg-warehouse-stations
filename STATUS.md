@@ -16,3 +16,5 @@ where is the LEFT ZD420 now; stale Connect registrations (after hours); all 3 on
 created on next re-run (not urgent). Auth key stays valid (rotate before 2026-12-23).
 
 Resume: `ssh -i ~/.ssh/id_ed25519_mini "lynci@100.113.86.53"`
+
+**15:21** Right PC's own Chrome now routes ShipStation labels to its ZD420 (set via profile clone + CDP; `tools-set-shipstation-print-to.js`), label printed from that session. Task complete. Left PC still needs its browser pointed at "ZD420 RIGHT" (same script, different value) — do on request.
