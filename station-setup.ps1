@@ -368,6 +368,27 @@ if (-not $SkipSsh) {
     $merged = @($existing + $AuthorizedKeys | Where-Object { $_ -and $_.Trim() } | Select-Object -Unique)
     Set-Content -Path $akf -Value $merged -Encoding ASCII
     icacls.exe $akf /inheritance:r /grant 'SYSTEM:F' /grant 'BUILTIN\Administrators:F' | Out-Null
+    Note 'ssh' 'keys installed for Administrators (administrators_authorized_keys)'
+    # ALSO authorize the logged-in packer account, which is usually NOT an admin.
+    # Windows OpenSSH reads administrators_authorized_keys only for admins; a standard
+    # user is authenticated from their own %USERPROFILE%\.ssh\authorized_keys, so without
+    # this the box is unreachable whenever the packer account isn't an administrator.
+    foreach ($profileDir in (Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -notin @('Public', 'Default', 'Default User', 'All Users') })) {
+      $sshDir = Join-Path $profileDir.FullName '.ssh'
+      $uakf = Join-Path $sshDir 'authorized_keys'
+      $acct = $profileDir.Name
+      try {
+        # only touch profiles that map to a real, enabled local account (skip service/system profiles)
+        $lu = Get-LocalUser -Name $acct -ErrorAction SilentlyContinue
+        if (-not $lu -or -not $lu.Enabled) { continue }
+        New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
+        $uexist = @(); if (Test-Path $uakf) { $uexist = Get-Content $uakf }
+        $umerged = @($uexist + $AuthorizedKeys | Where-Object { $_ -and $_.Trim() } | Select-Object -Unique)
+        Set-Content -Path $uakf -Value $umerged -Encoding ASCII
+        icacls.exe $uakf /inheritance:r /grant "${acct}:F" /grant 'SYSTEM:F' /grant 'BUILTIN\Administrators:F' | Out-Null
+        Note 'ssh' ("keys installed for local user '{0}'" -f $acct)
+      } catch { Note 'ssh' ("could not set authorized_keys for '{0}': {1}" -f $acct, $_.Exception.Message) 'WARN' }
+    }
     # firewall: only from the tailnet + the local subnet
     Get-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -ErrorAction SilentlyContinue | Remove-NetFirewallRule
     Get-NetFirewallRule -DisplayName 'LG SSH (tailnet+LAN)' -ErrorAction SilentlyContinue | Remove-NetFirewallRule
