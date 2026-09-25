@@ -1,24 +1,22 @@
 # STATUS — lg-warehouse-stations
 
-**2026-09-24 (late)** — Remote admin access LIVE on all 3 stations. Ghost queue removed. ZD420 reset sent.
+**2026-09-24 (close)** — Right packing station is DONE and confirmed on paper by York ("all good").
 
-Station map (tailnet name ≠ runbook number — crew pasted lines on different PCs):
-- lg-station-1 100.70.246.71 = DESKTOP-BQ2D6JS, account `Lakeside T-Mobile`, ZD420 RIGHT (USB001). LEFT printer not attached here.
-- lg-station-2 100.85.242.68 = DESKTOP-NC5RQH1, account `liquor geeks`, GX420t. Healthy.
-- lg-station-3 100.113.86.53 = DESKTOP-UKL2D68, account `lynci`, ZD420-300dpi (the "right" PC). Direct-thermal reset sent.
-SSH: `ssh -i ~/.ssh/id_ed25519_mini "<account>@<ip>"`. Reports: mini `~/lg-station-reports/*-latest.json`.
+## Stations
+| tailnet | PC | account | printer | state |
+|---|---|---|---|---|
+| lg-station-1 100.70.246.71 | DESKTOP-BQ2D6JS (LEFT) | `Lakeside T-Mobile` | ZD420 "ZD420 RIGHT" | working; ghost queue removed; still 3x2 label size |
+| lg-station-2 100.85.242.68 | DESKTOP-NC5RQH1 (MIDDLE) | `liquor geeks` | GX420t | working; still 3x2 label size |
+| lg-station-3 100.113.86.53 | DESKTOP-UKL2D68 (RIGHT) | `lynci` | ZD420c | **fixed**: direct thermal, sensor calibrated, 4x6 full width, rotated 180, override `^MT,^PO` |
 
-Done today: USB/power/EPM hardening + Connect watchdog on all 3; tailnet join, key expiry disabled; SSH+RDP;
-BQ2D6JS ghost "ZD420-203dpi" queue deleted (18 dead jobs), default → ZD420 RIGHT; UKL2D68 ZD420 direct-thermal config sent.
+All three: USB/power hardening, Connect watchdog, tailnet (expiry off), SSH + RDP, reports to the mini.
+SSH: `ssh -i ~/.ssh/id_ed25519_mini "<account>@<ip>"`. Diagnose any Zebra: `zebra-status.ps1` + ZEBRA-DIAGNOSE.md.
 
-Right ZD420 FULLY FIXED 9/24 15:13 incl. ShipStation path (driver 10.6 + PI_StatusCheckType 0 + printer command_override ^MT; see memory). Open: crew picks "ZD420 RIGHT" in ShipStation Printing Setup on BQ2D6JS;
-where is the LEFT ZD420 now; stale Connect registrations (after hours); all 3 on Wi-Fi → cable them; lgadmin gets
-created on next re-run (not urgent). Auth key stays valid (rotate before 2026-12-23).
+## Open (none blocking)
+- York's call: switch LEFT + MIDDLE to full 4x6 too (`set-label-size.ps1` + delete HKCU DevModes2; flip only if their stock needs it).
+- Any phone/other browser still set to the middle printer sends labels there; set Print To per device.
+- LEFT PC browser: pick "ZD420 RIGHT" in Printing Setup (or drive it with tools-print-from-station.js).
+- Stale ShipStation Connect registrations (after hours). All 3 PCs on Wi-Fi ("Air flex"): cable them.
+- `lgadmin` account gets created on the next setup re-run. Rotate the tailnet auth key before 2026-12-23.
 
-Resume: `ssh -i ~/.ssh/id_ed25519_mini "lynci@100.113.86.53"`
-
-**15:21** Right PC's own Chrome now routes ShipStation labels to its ZD420 (set via profile clone + CDP; `tools-set-shipstation-print-to.js`), label printed from that session. Task complete. Left PC still needs its browser pointed at "ZD420 RIGHT" (same script, different value) — do on request.
-
-**17:29 — right ZD420 truly fixed, verified by the printer's own status.** Real blocker was a mis-calibrated label
-sensor (Media Out); ~JC + ~PS cleared it. Driver ^MTT job and a real ShipStation label printed; flags stay 00000000.
-Diagnose any station's Zebra with `zebra-status.ps1` (see ZEBRA-DIAGNOSE.md).
+Resume: `ssh -i ~/.ssh/id_ed25519_mini "lynci@100.113.86.53"` then read ZEBRA-DIAGNOSE.md.
