@@ -18,3 +18,7 @@ created on next re-run (not urgent). Auth key stays valid (rotate before 2026-12
 Resume: `ssh -i ~/.ssh/id_ed25519_mini "lynci@100.113.86.53"`
 
 **15:21** Right PC's own Chrome now routes ShipStation labels to its ZD420 (set via profile clone + CDP; `tools-set-shipstation-print-to.js`), label printed from that session. Task complete. Left PC still needs its browser pointed at "ZD420 RIGHT" (same script, different value) — do on request.
+
+**17:29 — right ZD420 truly fixed, verified by the printer's own status.** Real blocker was a mis-calibrated label
+sensor (Media Out); ~JC + ~PS cleared it. Driver ^MTT job and a real ShipStation label printed; flags stay 00000000.
+Diagnose any station's Zebra with `zebra-status.ps1` (see ZEBRA-DIAGNOSE.md).
