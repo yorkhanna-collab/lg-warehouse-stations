@@ -17,6 +17,7 @@ SSH: `ssh -i ~/.ssh/id_ed25519_mini "<account>@<ip>"`. Diagnose any Zebra: `zebr
 - Any phone/other browser still set to the middle printer sends labels there; set Print To per device.
 - LEFT PC browser: pick "ZD420 RIGHT" in Printing Setup (or drive it with tools-print-from-station.js).
 - Stale ShipStation Connect registrations (after hours). All 3 PCs on Wi-Fi ("Air flex"): cable them.
-- `lgadmin` account gets created on the next setup re-run. Rotate the tailnet auth key before 2026-12-23.
+- `lgadmin` account gets created on the next setup re-run.
+- Tailnet auth key: the reusable 9/24 key (kRaNXzEydd11CNTRL) was REVOKED 2026-10-10 after all 3 stations joined; they stay on the tailnet (revoking never deauthorizes a joined node; node key expiry is off). To join a new or re-imaged PC, generate a one-off key at console.tailscale.com/admin/settings/keys and pass it as `-TsKey`. A re-run on an already-joined station skips `tailscale up`, so it needs no key.
 
 Resume: `ssh -i ~/.ssh/id_ed25519_mini "lynci@100.113.86.53"` then read ZEBRA-DIAGNOSE.md.
