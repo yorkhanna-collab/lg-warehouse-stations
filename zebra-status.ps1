@@ -1,4 +1,5 @@
-param([string]$CmdsB64)
+# -Serial picks one Zebra when several are on the same PC (the LEFT PC has two ZD420s); without it, the last one found is used.
+param([string]$CmdsB64, [string]$Serial)
 Add-Type -TypeDefinition @"
 using System; using System.Runtime.InteropServices; using System.Text; using System.Threading; using Microsoft.Win32.SafeHandles;
 public class ZUsb2 {
@@ -12,7 +13,7 @@ public class ZUsb2 {
   [DllImport("kernel32.dll", SetLastError=true)] static extern bool WriteFile(SafeFileHandle h, byte[] b, int n, out int w, IntPtr o);
   [DllImport("kernel32.dll", SetLastError=true)] static extern bool ReadFile(SafeFileHandle h, byte[] b, int n, out int r, IntPtr o);
   [DllImport("kernel32.dll", SetLastError=true)] static extern bool CancelIoEx(SafeFileHandle h, IntPtr o);
-  public static string Path() {
+  public static string Path(string serial) {
     var g = USBPRINT; string found = null;
     IntPtr s = SetupDiGetClassDevs(ref g, IntPtr.Zero, IntPtr.Zero, 0x12);
     for (int i = 0; ; i++) {
@@ -20,7 +21,7 @@ public class ZUsb2 {
       if (!SetupDiEnumDeviceInterfaces(s, IntPtr.Zero, ref g, i, ref did)) break;
       int req; SetupDiGetDeviceInterfaceDetail(s, ref did, IntPtr.Zero, 0, out req, IntPtr.Zero);
       IntPtr det = Marshal.AllocHGlobal(req); Marshal.WriteInt32(det, IntPtr.Size == 8 ? 8 : 6);
-      if (SetupDiGetDeviceInterfaceDetail(s, ref did, det, req, out req, IntPtr.Zero)) { string p = Marshal.PtrToStringAuto(new IntPtr(det.ToInt64() + 4)); if (p.ToLower().Contains("vid_0a5f")) found = p; }
+      if (SetupDiGetDeviceInterfaceDetail(s, ref did, det, req, out req, IntPtr.Zero)) { string p = Marshal.PtrToStringAuto(new IntPtr(det.ToInt64() + 4)); if (p.ToLower().Contains("vid_0a5f") && (string.IsNullOrEmpty(serial) || p.ToLower().Contains(serial.ToLower()))) found = p; }
       Marshal.FreeHGlobal(det);
     }
     SetupDiDestroyDeviceInfoList(s); return found;
@@ -44,7 +45,7 @@ public class ZUsb2 {
 }
 "@
 $cmds = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($CmdsB64)) | ConvertFrom-Json
-$p = [ZUsb2]::Path(); if (-not $p) { "NO ZEBRA USB"; return }
+$p = [ZUsb2]::Path($Serial); if (-not $p) { "NO ZEBRA USB $Serial"; return }
 if (-not [ZUsb2]::Open($p)) { "OPENFAIL"; return }
 foreach ($c in $cmds) {
   $wait = 1200; if ($c.w) { $wait = [int]$c.w }

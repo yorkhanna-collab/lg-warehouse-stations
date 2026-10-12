@@ -17,6 +17,11 @@ $c = @(
 & .\zebra-status.ps1 -CmdsB64 ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($c)))
 ```
 
+The LEFT PC has two ZD420s; add `-Serial 50J194903190` (or `50J194906607`) or you get whichever one Windows lists last.
+Identity/options: `device.configuration_number` (the full part number, e.g. ZD42043-C01W018N), `internal_wired.mac_addr`
+(all zeros = no Ethernet module), `wlan.mac_addr` / `wlan.associated`, `ribbon.cartridge.authenticated`. `allconfig` is not a
+ZD420 SGD (returns `?`).
+
 ## Decode `~HQES` ERRORS (last 8 hex digits, rightmost nibble first)
 | nibble (from right) | bit 1 | bit 2 | bit 4 | bit 8 |
 |---|---|---|---|---|

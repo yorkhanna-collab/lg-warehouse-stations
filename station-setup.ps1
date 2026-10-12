@@ -311,9 +311,11 @@ foreach ($w in (Get-CimInstance Win32_Printer -ErrorAction SilentlyContinue | Wh
   $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "{0}"' -f $wd)
   $trigger = New-ScheduledTaskTrigger -AtLogOn
   $trigger.Repetition = (New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 3650)).Repetition
+  # A logon trigger alone never fires on a PC that stays logged in (the LEFT PC ran 18 days without one run), so also start on the clock.
+  $clock = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 3650)
   $principal = New-ScheduledTaskPrincipal -GroupId 'BUILTIN\Users' -RunLevel Limited
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 2)
-  Register-ScheduledTask -TaskName 'LG-ConnectWatchdog' -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
+  Register-ScheduledTask -TaskName 'LG-ConnectWatchdog' -Action $action -Trigger @($trigger, $clock) -Principal $principal -Settings $settings -Force | Out-Null
   Note 'connect' 'watchdog task LG-ConnectWatchdog registered (every 5 min for whoever is logged in)'
 }
 
