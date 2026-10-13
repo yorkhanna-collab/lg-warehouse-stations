@@ -51,8 +51,12 @@ Wi-Fi is present but not joined. The GK420t has no print server.
   so Connect's printer id still matches.
 
 ## Optional, nothing blocking
-- **Stale Connect registrations** (F04617U ×2, GAAQTQN ×2, BQ2D6JS dup `e3980d84`, Ronees-MBP, MacBook-Pro-2) are harmless clutter.
-  Deactivation is scheduled after hours on 2026-10-12 18:30 PT as its own /today row; the exact ids are in the project memory.
+- ~~Stale Connect registrations~~ **DONE 2026-10-12 18:34 PT**: all 7 deactivated in ShipStation `/settings/connect` (F04617U ×2,
+  GAAQTQN ×2, BQ2D6JS dup `e3980d84`, Ronees-MBP, MacBook-Pro-2). `/api/seller/workstations` now lists exactly the 3 live
+  stations: NC5RQH1 `30c4ccf9`, BQ2D6JS `7ee07952` (Mathew), UKL2D68 `0b8313fe` (Iker). Their Zebra queues (GX420t, ZD420
+  LEFT/RIGHT, ZD420-300dpi) are still Shared, not Disabled. A PC comes back by signing into Connect on it.
+  Trap: the page's Deactivate button has no confirm dialog, and a Playwright ref click is resolved as `.first()` button on the
+  page, which after two removals is the LIVE NC5RQH1 card. Match each card by name + "Activated by" owner, never by position.
 - York's call: switch LEFT + MIDDLE to full 4x6 too (`set-label-size.ps1` + delete HKCU DevModes2; flip only if their stock
   needs it). Today's small labels scan fine.
 - Durable network: run a cable to each PC (all on Wi-Fi). Only worth it if disconnects return.
