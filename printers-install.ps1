@@ -80,6 +80,10 @@ Write-Host "`n== Network printers (IPP) ==" -ForegroundColor Cyan
 $missing = @()
 foreach ($p in $Printers) {
   if (Get-Printer -Name $p.Name -ErrorAction SilentlyContinue) { Note 'ipp' ("{0}: already installed" -f $p.Name); continue }
+  # a queue for the same device under Windows' own WSD name (e.g. "EPSONEACE23 (XP-15000 Series)") counts as installed
+  $short = ($p.Host -split '\.')[0]
+  $existing = Get-Printer -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*$short*" } | Select-Object -First 1
+  if ($existing) { Note 'ipp' ("{0}: already present as '{1}' ({2})" -f $p.Name, $existing.Name, $existing.PortName); continue }
   $ip = $null
   try { $ip = ([System.Net.Dns]::GetHostAddresses($p.Host) | Where-Object { $_.AddressFamily -eq 'InterNetwork' } | Select-Object -First 1).IPAddressToString } catch {}
   if (-not $ip) {
