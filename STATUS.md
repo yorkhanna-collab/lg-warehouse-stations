@@ -11,6 +11,17 @@ York pasted the one-liner 17:59; joined 18:01; key expiry disabled in the consol
 - **ShipStation Connect:** installer 5.x went per-machine to `C:\Program Files\ShipStation Connect` (the script expected the per-user Squirrel path and
   logged a false WARN); it is running, HKCU Run key added, and the watchdog already checks the Program Files path. **Still needs a one-time
   sign-in on the PC with the station's ShipStation login** so its Zebra appears under Settings → Printing → ShipStation Connect.
+- **HP OfficeJet Pro 9130e on lg-station-4 — DONE 18:17 PT, via station-2.** The 9130e's own Wi-Fi fell off "Air flex" at 11:34 10/19 (gateway: `HPI34FA9A` off), but it is on the
+  MIDDLE PC's USB (st-2, queue Normal). So: st-2 now shares that queue as `\\DESKTOP-NC5RQH1\HP9130e` (local account `lgprint`, password in the laptop's
+  `~/.config/liquorgeeks/lg-station-2-lgprint.env`; "File and Printer Sharing" rules on, Wi-Fi profile set Private). On st-4 the credential is stored with
+  `cmdkey` for `LP Telecom` — this had to run INSIDE the desktop session (scheduled task, LogonType Interactive, RunLevel Highest): `cmdkey` from an SSH logon
+  says "Credentials cannot be saved from this logon session". Point-and-Print connection is impossible (`Add-Printer -ConnectionName` → "driver cannot be
+  retrieved", PrintService 869 0xBCB "Driver has no valid catalog": the HP PCL3 V3 package has no .cat), so the queue is a LOCAL printer
+  "HP OfficeJet Pro 9130e" with the installed HP driver (pnputil from st-2's `hpygid38.inf_amd64_*` DriverStore tar) on a Local Port named
+  `\\DESKTOP-NC5RQH1\HP9130e`. Windows test page: rc 0, queue drained, Normal. It is the default printer. **Depends on the MIDDLE PC being on.**
+  If the 9130e rejoins Wi-Fi, `LG-PrinterInstall` skips it (same queue name exists) — switch the port to IPP by hand if the USB host ever goes away.
+- York 18:12: this station will NOT have a Zebra ("im not using a connected zebra"); the ZDesigner drivers stay staged, harmless.
+
 - **Lesson:** the mini watcher never fired: the mini has no Tailscale CLI at `/Applications/Tailscale.app/Contents/MacOS/Tailscale` (it runs a
   different Tailscale build). The post-join steps were run from the laptop instead (`-F` ssh config with `User "LP Telecom"`; scp cannot take a
   user with a space inline). Next time: trigger off the report file alone, or find the mini's tailscale binary first.
@@ -28,7 +39,7 @@ with no cartridge, plus an uncalibrated label sensor. Fixed via SGD; see ZEBRA-D
 | lg-station-1 100.70.246.71 | DESKTOP-BQ2D6JS (LEFT) | `Lakeside T-Mobile` | TWO ZD420c: 50J194903190 = queue "ZD420 RIGHT" (USB001), 50J194906607 = queue "ZD420 LEFT" (USB002) | 163 (156 "ZD420 RIGHT", 7 "ZD420 LEFT"), 28 today | working; 3x2 label size |
 | lg-station-2 100.85.242.68 | DESKTOP-NC5RQH1 (MIDDLE) | `liquor geeks` | GK420t 29J215301686 (queue name "ZDesigner GX420t") | 30 Connect PDFs, last 10/8 (this PC's PrintService/Operational log is off, so no event-307 count) | working, lightly used; 3x2 label size |
 | lg-station-3 100.113.86.53 | DESKTOP-UKL2D68 (RIGHT) | `lynci` | ZD420c 50J201201727 | 338, 18 today | **fixed**: direct thermal, sensor calibrated, 4x6 full width, rotated 180, override `^MT,^PO` |
-| lg-station-4 100.110.89.38 | CALAKM01 (NEW 10/19) | `LP Telecom` | none yet (ZDesigner driver staged); Epson XP-15000 default; HPs pending via LG-PrinterInstall | — | joined 10/19 18:01; Connect installed, not signed in |
+| lg-station-4 100.110.89.38 | CALAKM01 (NEW 10/19) | `LP Telecom` | no Zebra (York's call); **HP 9130e default** (local queue → UNC port `\\DESKTOP-NC5RQH1\HP9130e`, needs st-2 on); Epson XP-15000 WSD | test page 10/19 18:17 | joined 10/19 18:01; Connect installed, not signed in |
 
 All three: queues Normal, 0 stuck jobs, 0 PrintService/Admin errors since 9/25, and Connect is running.
 `LG-ConnectWatchdog` has **both triggers** (at-logon + a 5-min clock trigger) on all three and last ran 0x0. The clock trigger
