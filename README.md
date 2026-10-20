@@ -42,3 +42,21 @@ From the Mac: `ssh Administrator@lg-station-1` (or whichever account ran it) lan
 Remote Desktop: Windows App → `lg-station-1`.
 
 Remaining manual/remote work is tracked in the project memory `project_lg_warehouse_stations`.
+
+## Adding a new packing PC (done for station 4, CALAKM01, 2026-10-19)
+1. Find it: the AT&T gateway lists every device with its hostname at `http://192.168.1.254/cgi-bin/devices.ha`
+   (needs the session cookie from `/cgi-bin/home.ha` first). A fresh Windows PC answers nothing on TCP, so this
+   is the only way to spot it. `nbtstat -A <ip>` from any station confirms it is Windows.
+2. Mint a one-off auth key at console.tailscale.com/admin/settings/keys (GitHub sign-in as yorkhanna-collab):
+   not reusable, 1–2 days, no tags. Keys from an OAuth client would be tagged and fall outside the stations' ACL.
+3. Paste on the PC (admin PowerShell): the one-liner above with `-TsKey '<key>' -Station <N>`.
+   The script joins the tailnet as `lg-station-N`, installs SSH keys + RDP, hardens USB/power, installs
+   ShipStation Connect, and POSTs its report to the mini (`~/lg-station-reports/<COMPUTER>-latest.json`,
+   which carries the account name to SSH in as).
+4. Printers, over SSH once it has joined: copy a tar of another station's ZDesigner DriverStore folder to
+   `C:\LG\zdesigner.tar` (`tar.exe -cf C:\LG\zdesigner.tar -C C:\WINDOWS\System32\DriverStore\FileRepository\zdesigner.inf_amd64_* .`),
+   then run `printers-install.ps1`. It stages the Zebra driver and adds the shared HP/Epson printers as IPP
+   queues by mDNS name; anything asleep is retried by the `LG-PrinterInstall` task. The mini's
+   `~/lg-station-reports/post-join-lg-station-4.sh` is the automated version of this step.
+5. Disable key expiry for the new node in the console (Machines → … → Disable key expiry), then sign ShipStation
+   Connect in on the PC with the station's ShipStation login so its Zebra shows up under Settings → Printing.

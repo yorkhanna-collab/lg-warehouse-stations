@@ -1,5 +1,12 @@
 # STATUS — lg-warehouse-stations
 
+**2026-10-19 17:55 PT — REOPENED: 4th packing PC `CALAKM01` (192.168.1.190, Intel NIC e4:b3:18:39:a4:13, Wi-Fi "Air flex", Windows, WORKGROUP) is on the LAN with every TCP port firewalled.**
+Waiting on one paste. Prepared and live:
+- One-off Tailscale key minted 17:51 PT (single-use, expires 2026-10-21, description "lg-station-4 (CALAKM01) one-off join key"); saved on the laptop at `~/.config/liquorgeeks/tailscale-lg-station-4-key.env` and the full one-liner at `~/.config/liquorgeeks/lg-station-4-oneliner.txt`. Sent to York's Slack DM 17:55 PT. Hostname will be `lg-station-4`.
+- `printers-install.ps1` (commit c777057) — Zebra ZDesigner v10.6.12 driver staged from station-1's DriverStore tar + IPP queues for HP OfficeJet Pro 9130e (HPI34FA9A.local), HP Color LaserJet M283cdw (NPI65B897.local), HP LaserJet M209dw (NPI0EB1BE.local), Epson (EPSONEACE23.local, 192.168.1.195, the only one awake at 17:40). Retry task `LG-PrinterInstall` covers the sleeping ones.
+- Mini watcher `~/lg-station-reports/post-join-lg-station-4.sh` (nohup, pid 36509, 36h): waits for `tailscale status` to show lg-station-4 AND a fresh `*-latest.json` report, reads the account from the report, SSHes in with the mini key, copies `~/lg-station-reports/zdesigner.tar`, runs printers-install.ps1, saves `lg-station-4-printers.json` + `lg-station-4-station-report.json`, writes `lg-station-4-postjoin.done` (OK/FAIL) and `lg-station-4-postjoin.log`.
+- Still to do after it joins: disable key expiry in the console; sign ShipStation Connect in on the PC (station login); add it to the table below. The Zebra for this station is whatever gets plugged in by USB — the driver is pre-staged so it binds on plug-in.
+
 **FINAL 2026-10-12 17:20 PT: project CLOSED.** The setup is done and live on all 3 packing stations. Checked tonight over SSH:
 all three are printing, with zero PrintService errors since 9/25 and the Connect watchdog running every 5 min.
 What is left is optional, nothing is blocking, and it is listed at the bottom. The repo stays as the runbook for the next
