@@ -1,16 +1,19 @@
 # STATUS — lg-warehouse-stations
 
-**2026-10-19 17:55 PT — REOPENED: 4th packing PC `CALAKM01` (192.168.1.190, Intel NIC e4:b3:18:39:a4:13, Wi-Fi "Air flex", Windows, WORKGROUP) is on the LAN with every TCP port firewalled.**
-Waiting on one paste. Prepared and live:
-- One-off Tailscale key minted 17:51 PT (single-use, expires 2026-10-21, description "lg-station-4 (CALAKM01) one-off join key"); saved on the laptop at `~/.config/liquorgeeks/tailscale-lg-station-4-key.env` and the full one-liner at `~/.config/liquorgeeks/lg-station-4-oneliner.txt`. Sent to York's Slack DM 17:55 PT. Hostname will be `lg-station-4`.
-- `printers-install.ps1` (commit c777057) — Zebra ZDesigner v10.6.12 driver staged from station-1's DriverStore tar + IPP queues for HP OfficeJet Pro 9130e (HPI34FA9A.local), HP Color LaserJet M283cdw (NPI65B897.local), HP LaserJet M209dw (NPI0EB1BE.local), Epson (EPSONEACE23.local, 192.168.1.195, the only one awake at 17:40). Retry task `LG-PrinterInstall` covers the sleeping ones.
-- Mini watcher `~/lg-station-reports/post-join-lg-station-4.sh` (nohup, pid 36509, 36h): waits for `tailscale status` to show lg-station-4 AND a fresh `*-latest.json` report, reads the account from the report, SSHes in with the mini key, copies `~/lg-station-reports/zdesigner.tar`, runs printers-install.ps1, saves `lg-station-4-printers.json` + `lg-station-4-station-report.json`, writes `lg-station-4-postjoin.done` (OK/FAIL) and `lg-station-4-postjoin.log`.
-- Still to do after it joins: disable key expiry in the console; sign ShipStation Connect in on the PC (station login); add it to the table below. The Zebra for this station is whatever gets plugged in by USB — the driver is pre-staged so it binds on plug-in.
-
-**FINAL 2026-10-12 17:20 PT: project CLOSED.** The setup is done and live on all 3 packing stations. Checked tonight over SSH:
-all three are printing, with zero PrintService errors since 9/25 and the Connect watchdog running every 5 min.
-What is left is optional, nothing is blocking, and it is listed at the bottom. The repo stays as the runbook for the next
-complaint or a new PC.
+**2026-10-19 18:08 PT — 4th packing PC DONE: `lg-station-4` = CALAKM01 (100.110.89.38, LAN 192.168.1.190, Wi-Fi "Air flex", Windows 10 Pro 22H2, account `LP Telecom`).**
+York pasted the one-liner 17:59; joined 18:01; key expiry disabled in the console 18:06. Verified over SSH 18:08: sshd Running/Automatic
+(laptop + mini keys, `lgadmin` created), RDP on, Tailscale 1.104.1, power/USB hardening applied, `LG-ConnectWatchdog` + `LG-PrinterInstall` Ready.
+- **Printers:** ZDesigner 10.6.12 driver staged with pnputil + ZD420 203/300 dpi drivers pre-added (no Zebra is plugged in yet; it binds on plug-in).
+  Epson XP-15000 `EPSONEACE23` was already there as a WSD queue and is now the default. HP OfficeJet Pro 9130e, HP Color LaserJet M283cdw and
+  HP LaserJet M209dw were asleep/off, so `LG-PrinterInstall` (logon + every 30 min) adds them as IPP queues when they answer and then removes itself.
+  Cleaned out of the old office image: "HP LaserJet MFP M426fdw" (PendingDeletion, 6 stuck jobs) and the USB "HP OfficeJet Pro 8020" (printer not
+  attached). The WSD `HPBC0742 (HP OfficeJet Pro 8020)` queue was left (offline, harmless).
+- **ShipStation Connect:** installer 5.x went per-machine to `C:\Program Files\ShipStation Connect` (the script expected the per-user Squirrel path and
+  logged a false WARN); it is running, HKCU Run key added, and the watchdog already checks the Program Files path. **Still needs a one-time
+  sign-in on the PC with the station's ShipStation login** so its Zebra appears under Settings → Printing → ShipStation Connect.
+- **Lesson:** the mini watcher never fired: the mini has no Tailscale CLI at `/Applications/Tailscale.app/Contents/MacOS/Tailscale` (it runs a
+  different Tailscale build). The post-join steps were run from the laptop instead (`-F` ssh config with `User "LP Telecom"`; scp cannot take a
+  user with a space inline). Next time: trigger off the report file alone, or find the mini's tailscale binary first.
 
 ## What was wrong, and what fixed it (9/24 – 10/12)
 The "disconnects" were never the printers. Two things caused them: Windows USB power management, and per-user ShipStation
@@ -25,6 +28,7 @@ with no cartridge, plus an uncalibrated label sensor. Fixed via SGD; see ZEBRA-D
 | lg-station-1 100.70.246.71 | DESKTOP-BQ2D6JS (LEFT) | `Lakeside T-Mobile` | TWO ZD420c: 50J194903190 = queue "ZD420 RIGHT" (USB001), 50J194906607 = queue "ZD420 LEFT" (USB002) | 163 (156 "ZD420 RIGHT", 7 "ZD420 LEFT"), 28 today | working; 3x2 label size |
 | lg-station-2 100.85.242.68 | DESKTOP-NC5RQH1 (MIDDLE) | `liquor geeks` | GK420t 29J215301686 (queue name "ZDesigner GX420t") | 30 Connect PDFs, last 10/8 (this PC's PrintService/Operational log is off, so no event-307 count) | working, lightly used; 3x2 label size |
 | lg-station-3 100.113.86.53 | DESKTOP-UKL2D68 (RIGHT) | `lynci` | ZD420c 50J201201727 | 338, 18 today | **fixed**: direct thermal, sensor calibrated, 4x6 full width, rotated 180, override `^MT,^PO` |
+| lg-station-4 100.110.89.38 | CALAKM01 (NEW 10/19) | `LP Telecom` | none yet (ZDesigner driver staged); Epson XP-15000 default; HPs pending via LG-PrinterInstall | — | joined 10/19 18:01; Connect installed, not signed in |
 
 All three: queues Normal, 0 stuck jobs, 0 PrintService/Admin errors since 9/25, and Connect is running.
 `LG-ConnectWatchdog` has **both triggers** (at-logon + a 5-min clock trigger) on all three and last ran 0x0. The clock trigger
