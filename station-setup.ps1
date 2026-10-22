@@ -153,7 +153,7 @@ Try-Run 'printers' {
 Try-Run 'power' {
   $Inv.power_plan = (powercfg /getactivescheme 2>$null) -join ''
   $Inv.hiberboot = (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name HiberbootEnabled -ErrorAction SilentlyContinue).HiberbootEnabled
-  $q = (powercfg /query SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb50f7e206 2>$null) -join "`n"
+  $q = (powercfg /query SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 2>$null) -join "`n"
   if ($q -match 'Current AC Power Setting Index:\s+0x(\w+)') { $Inv.usb_selective_suspend_ac = [int]("0x" + $Matches[1]) }
 }
 Try-Run 'connect' {
@@ -205,8 +205,8 @@ Try-Run 'powercfg' {
   powercfg /change monitor-timeout-ac 30 | Out-Null
   powercfg /hibernate off | Out-Null
   # USB selective suspend: off on AC and battery
-  powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb50f7e206 0 | Out-Null
-  powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb50f7e206 0 | Out-Null
+  powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0 | Out-Null
+  powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0 | Out-Null
   powercfg /setactive SCHEME_CURRENT | Out-Null
   Note 'power' 'never sleep/hibernate on AC, display off after 30 min, USB selective suspend OFF'
 }
