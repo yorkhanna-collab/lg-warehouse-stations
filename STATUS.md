@@ -1,5 +1,7 @@
 # STATUS — lg-warehouse-stations
 
+**2026-10-22 — USB selective-suspend GUID fix (02d235a) + a 5th LG-way machine, the Arrow ThinkPad.** `station-setup.ps1` wrote USB selective suspend to `…53bb50f7e206`, a GUID that does not exist; the real setting is `48e6b7a6-50f5-4782-a5d4-53bb8f07e226` (found by parsing `powercfg /q`). Fixed in the script and applied live on all 4 stations the same afternoon. Also set up outside this repo but LG-way: **arrow-thinkpad** (ARROW-THINKPAD, 100.73.14.90, Veuve Clicquot Arrow cutter + OMTech laser; memory project_lg_vc_arrow_thinkpad_test). It got two things the stations do not have yet: power/sleep/lid buttons = do nothing on AC **and DC**, and the Windows Update policy `NoAutoRebootWithLoggedOnUsers=1` / `AUOptions=3` / active hours 06–23 (York 10/22: "make this laptop not turn off by itself"; the 16:04 outage was a lock-screen power-off, System log 1074). Open: decide whether the 4 stations get the no-auto-reboot policy too (flagged to York 10/22, not applied).
+
 **2026-10-19 18:08 PT — 4th packing PC DONE: `lg-station-4` = CALAKM01 (100.110.89.38, LAN 192.168.1.190, Wi-Fi "Air flex", Windows 10 Pro 22H2, account `LP Telecom`).**
 York pasted the one-liner 17:59; joined 18:01; key expiry disabled in the console 18:06. Verified over SSH 18:08: sshd Running/Automatic
 (laptop + mini keys, `lgadmin` created), RDP on, Tailscale 1.104.1, power/USB hardening applied, `LG-ConnectWatchdog` + `LG-PrinterInstall` Ready.
