@@ -1,5 +1,30 @@
 # STATUS — lg-warehouse-stations
 
+**2026-10-29 16:50 PT — RIGHT packing PC REPLACED: `lg-station-3` is now `LIQUORGEEKS` (Lenovo F0G100NLUS, Windows 11 Home, account `lynci`, 100.114.213.100). DONE, printing.**
+The old DESKTOP-UKL2D68 died 10/29; York pasted the one-liner on the new PC (one-off untagged Tailscale key, `-Station 3`; joined 15:25 PT, the
+OpenSSH capability install took ~14 min, key expiry disabled, the dead node was renamed `lg-station-3-dead` to free the name). Everything else was
+done over SSH from the laptop, plus an in-session GUI agent for the parts Windows refuses from an SSH token. Verified 16:49 PT:
+- **Zebra ZD420c 50J201201727** = queue `ZDesigner ZD420-300dpi ZPL` on USB001, Normal, 4x6 default page (`set-label-size.ps1`), raw ZPL test label printed.
+  Trap: after the pnputil driver stage the printer bound only as "USB Printing Support" (usbprint parent); `pnputil /restart-device` on it created the
+  USBPRINT child + USB001 + the ZDesigner queue. No printer-side fix was needed (same printer, already direct thermal + calibrated).
+- **HP OfficeJet Pro 9130e** = local queue on a Local Port `\DESKTOP-NC5RQH1\HP9130e` (station-2's share, `lgprint` cmdkey), HP PCL3 V3 driver from
+  `hp9130.tar`, default printer, Windows test page OK. `Add-PrinterPort` is "Access denied" from SSH even as admin; it (and `cmdkey`) ran inside an
+  Interactive, RunLevel Highest scheduled task. Depends on the MIDDLE PC being on (same as station-4).
+- **Chrome 156** (MSI, policies: ShipStation awaiting-shipment as startup page, `ShipStation.lnk` on the shared desktop), signed in with the packer's synced
+  profile (ShipStation user MathewK). Chrome was made the default browser (Settings) because Connect's "Log in with browser" opened Edge.
+- **ShipStation Connect 5.3.1** per-machine, signed in as workstation **"LG RIGHT PC"** (MathewK, registrationId `031b4946…`), Connected/Open, all 5 queues
+  Shared. Login trick: the browser flow ends on a `ssconnect://auth?data=…` link that Chrome would not hand to the app; copying the link address and
+  `Start-Process` of that URL (HKCR\ssconnect → Connect.exe "%1") completed the sign-in. Never paste that URL anywhere (it is a token).
+- **ShipStation side, in the packer's browser:** Scan page Printer = LG RIGHT PC / ZDesigner ZD420-300dpi ZPL (it was still the MIDDLE GX420t);
+  Settings → Printing → Print To: Label + Return Label = ZDesigner ZD420-300dpi ZPL, Packing Slip = HP OfficeJet Pro 9130e (were all "Always Prompt").
+  The dead registration DESKTOP-UKL2D68 `0b8313fe` (Iker) was deactivated by `DELETE /api/workstations/deleteWorkstation/<id>` (200) from that
+  browser; `/api/seller/workstations` now lists exactly 4: NC5RQH1 `30c4ccf9`, LG RIGHT PC `031b4946`, CALAKM01 `3c2d8930`, BQ2D6JS `7ee07952`.
+- **Hardening:** TZ Pacific, power/sleep/lid buttons = nothing, USB selective suspend off, WU no-auto-reboot policy (`NoAutoRebootWithLoggedOnUsers=1`,
+  `AUOptions=3`, active hours 06–23), `LG-ConnectWatchdog` + `LG-PrinterInstall` Ready, sshd Running/Automatic (laptop + mini keys, `lgadmin` created).
+  Wi-Fi (Realtek RTL8852AE) power saving reduced (PnPCapabilities=24, Leisure Power Save Low, DeviceSleepOnDisconnect Disabled) + adapter restarted,
+  because SSH stalled every few minutes during the build. Windows 11 **Home** has no RDP server: GUI work = the scheduled-task agent pattern, not RDP.
+- Teardown: the elevated GUI agent task `LG-UI` and its scratch files were removed from `C:\LG`. Old Tailscale node `lg-station-3-dead` still exists (harmless).
+
 **2026-10-22 — USB selective-suspend GUID fix (02d235a) + a 5th LG-way machine, the Arrow ThinkPad.** `station-setup.ps1` wrote USB selective suspend to `…53bb50f7e206`, a GUID that does not exist; the real setting is `48e6b7a6-50f5-4782-a5d4-53bb8f07e226` (found by parsing `powercfg /q`). Fixed in the script and applied live on all 4 stations the same afternoon. Also set up outside this repo but LG-way: **arrow-thinkpad** (ARROW-THINKPAD, 100.73.14.90, Veuve Clicquot Arrow cutter + OMTech laser; memory project_lg_vc_arrow_thinkpad_test). It got two things the stations do not have yet: power/sleep/lid buttons = do nothing on AC **and DC**, and the Windows Update policy `NoAutoRebootWithLoggedOnUsers=1` / `AUOptions=3` / active hours 06–23 (York 10/22: "make this laptop not turn off by itself"; the 16:04 outage was a lock-screen power-off, System log 1074). Open: decide whether the 4 stations get the no-auto-reboot policy too (flagged to York 10/22, not applied).
 
 **2026-10-19 18:08 PT — 4th packing PC DONE: `lg-station-4` = CALAKM01 (100.110.89.38, LAN 192.168.1.190, Wi-Fi "Air flex", Windows 10 Pro 22H2, account `LP Telecom`).**
@@ -40,7 +65,7 @@ with no cartridge, plus an uncalibrated label sensor. Fixed via SGD; see ZEBRA-D
 |---|---|---|---|---|---|
 | lg-station-1 100.70.246.71 | DESKTOP-BQ2D6JS (LEFT) | `Lakeside T-Mobile` | TWO ZD420c: 50J194903190 = queue "ZD420 RIGHT" (USB001), 50J194906607 = queue "ZD420 LEFT" (USB002) | 163 (156 "ZD420 RIGHT", 7 "ZD420 LEFT"), 28 today | working; 3x2 label size |
 | lg-station-2 100.85.242.68 | DESKTOP-NC5RQH1 (MIDDLE) | `liquor geeks` | GK420t 29J215301686 (queue name "ZDesigner GX420t") | 30 Connect PDFs, last 10/8 (this PC's PrintService/Operational log is off, so no event-307 count) | working, lightly used; 3x2 label size |
-| lg-station-3 100.113.86.53 | DESKTOP-UKL2D68 (RIGHT) | `lynci` | ZD420c 50J201201727 | 338, 18 today | **fixed**: direct thermal, sensor calibrated, 4x6 full width, rotated 180, override `^MT,^PO` |
+| lg-station-3 **100.114.213.100** (NEW PC 10/29) | **LIQUORGEEKS** (RIGHT; was DESKTOP-UKL2D68, died 10/29) | `lynci` | ZD420c 50J201201727 (same printer) + HP 9130e via st-2 share | test label 10/29 | rebuilt 10/29, see top; 4x6 default page; Connect = "LG RIGHT PC" |
 | lg-station-4 100.110.89.38 | CALAKM01 (NEW 10/19) | `LP Telecom` | no Zebra (York's call); **HP 9130e default** (local queue → UNC port `\\DESKTOP-NC5RQH1\HP9130e`, needs st-2 on); Epson XP-15000 WSD | test page 10/19 18:17 | joined 10/19 18:01; Connect installed, not signed in |
 
 All three: queues Normal, 0 stuck jobs, 0 PrintService/Admin errors since 9/25, and Connect is running.

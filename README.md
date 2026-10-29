@@ -17,7 +17,7 @@ The one-liner has this shape (the key and station number differ per PC):
 Set-ExecutionPolicy Bypass -Scope Process -Force; & ([scriptblock]::Create((irm https://raw.githubusercontent.com/yorkhanna-collab/lg-warehouse-stations/main/station-setup.ps1))) -TsKey 'tskey-auth-…' -Station 1
 ```
 
-Station numbers: `1` = DESKTOP-NC5RQH1 (GX420t), `2` = DESKTOP-BQ2D6JS (two ZD420s), `3` = DESKTOP-UKL2D68 (ZD420 300dpi).
+Station numbers: `1` = DESKTOP-NC5RQH1 (GX420t), `2` = DESKTOP-BQ2D6JS (two ZD420s), `3` = LIQUORGEEKS, the RIGHT PC (ZD420 300dpi; replaced DESKTOP-UKL2D68 on 2026-10-29), `4` = CALAKM01.
 Wrong number is harmless; it only sets the tailnet name.
 
 `-ReportOnly` inventories without changing anything. `-SkipTailscale`, `-SkipSsh`, `-SkipRdp` exist.
