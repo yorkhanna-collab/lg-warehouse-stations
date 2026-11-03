@@ -1,5 +1,22 @@
 # STATUS — lg-warehouse-stations
 
+**2026-11-03 14:40 PT — station 4 (CALAKM01) prints to the UPC Zebra on station 3 over the network. DONE, test label printed.**
+York: "connect the 4th packing station to the left zebra upc barcode printer on the 3rd packing station." His count runs from the RIGHT:
+3rd station = DESKTOP-BQ2D6JS (our `lg-station-1`, the two-Zebra PC), 4th = CALAKM01 (`lg-station-4`). The UPC printer is its queue
+**`ZD420 LEFT`** (ZD420c 50J194906607, USB002, 3x2 labels, ~6 jobs a month; `ZD420 RIGHT` is the shipping-label one, ~400 a month).
+Same pattern as the 9130e share from station 2, done mid-shift without touching the spooler:
+- **Station 1 (share side, over SSH):** local user `lgprint` (password in the laptop's `~/.config/liquorgeeks/lg-station-1-lgprint.env`,
+  hidden from the welcome screen via `SpecialAccounts\UserList`), Wi-Fi "Air flex" profile Public → **Private**, the "File and Printer Sharing"
+  rule group enabled for Private/Public (14 rules), `ZD420 LEFT` shared as **`\\DESKTOP-BQ2D6JS\ZD420LEFT`**.
+- **Station 4 (over SSH + a one-shot Interactive scheduled task `LG-ZDLEFT`, removed afterwards):** `cmdkey /add:DESKTOP-BQ2D6JS` as
+  `lgprint`, Local Port `\\DESKTOP-BQ2D6JS\ZD420LEFT`, LOCAL queue **`ZD420 LEFT`** on the already-staged `ZDesigner ZD420-300dpi ZPL` driver,
+  page size 3x2 (`set-label-size.ps1 -WidthTenthMm 762 -LengthTenthMm 508`, global + user DevMode). `set-label-size.ps1` and `send-zpl.ps1`
+  now live in `C:\LG` on station 4.
+- **Verified:** raw ZPL test label (UPC-A 012345678905) sent from station 4 at 14:38:30 → station 1's PrintService 307 shows it printed on
+  `ZD420 LEFT` through USB002 as `lgprint`; queue Normal, 0 jobs, SMB session from CALAKM01 open. The same queue name on both PCs means the
+  crew picks "ZD420 LEFT" in the print dialog on either machine. **Depends on station 1 being on** (like the 9130e depends on station 2).
+- Not done on purpose: the shipping Zebra (`ZD420 RIGHT`) is not shared, and ShipStation Connect on station 4 is still not signed in.
+
 **2026-10-29 16:50 PT — RIGHT packing PC REPLACED: `lg-station-3` is now `LIQUORGEEKS` (Lenovo F0G100NLUS, Windows 11 Home, account `lynci`, 100.114.213.100). DONE, printing.**
 The old DESKTOP-UKL2D68 died 10/29; York pasted the one-liner on the new PC (one-off untagged Tailscale key, `-Station 3`; joined 15:25 PT, the
 OpenSSH capability install took ~14 min, key expiry disabled, the dead node was renamed `lg-station-3-dead` to free the name). Everything else was
@@ -63,10 +80,10 @@ with no cartridge, plus an uncalibrated label sensor. Fixed via SGD; see ZEBRA-D
 ## Stations, verified 2026-10-12 17:19 PT
 | tailnet | PC | account | printer(s) | labels last 7d | state |
 |---|---|---|---|---|---|
-| lg-station-1 100.70.246.71 | DESKTOP-BQ2D6JS (LEFT) | `Lakeside T-Mobile` | TWO ZD420c: 50J194903190 = queue "ZD420 RIGHT" (USB001), 50J194906607 = queue "ZD420 LEFT" (USB002) | 163 (156 "ZD420 RIGHT", 7 "ZD420 LEFT"), 28 today | working; 3x2 label size |
+| lg-station-1 100.70.246.71 | DESKTOP-BQ2D6JS (LEFT; York calls it the **3rd** station) | `Lakeside T-Mobile` | TWO ZD420c: 50J194903190 = queue "ZD420 RIGHT" (USB001, shipping), 50J194906607 = queue "ZD420 LEFT" (USB002, **UPC labels; SHARED as `\\DESKTOP-BQ2D6JS\ZD420LEFT` since 11/03**, `lgprint` account) | 163 (156 "ZD420 RIGHT", 7 "ZD420 LEFT"), 28 today | working; 3x2 label size |
 | lg-station-2 100.85.242.68 | DESKTOP-NC5RQH1 (MIDDLE) | `liquor geeks` | GK420t 29J215301686 (queue name "ZDesigner GX420t") | 30 Connect PDFs, last 10/8 (this PC's PrintService/Operational log is off, so no event-307 count) | working, lightly used; 3x2 label size |
 | lg-station-3 **100.114.213.100** (NEW PC 10/29) | **LIQUORGEEKS** (RIGHT; was DESKTOP-UKL2D68, died 10/29) | `lynci` | ZD420c 50J201201727 (same printer) + HP 9130e via st-2 share | test label 10/29 | rebuilt 10/29, see top; 4x6 default page; Connect = "LG RIGHT PC" |
-| lg-station-4 100.110.89.38 | CALAKM01 (NEW 10/19) | `LP Telecom` | no Zebra (York's call); **HP 9130e default** (local queue → UNC port `\\DESKTOP-NC5RQH1\HP9130e`, needs st-2 on); Epson XP-15000 WSD | test page 10/19 18:17 | joined 10/19 18:01; Connect installed, not signed in |
+| lg-station-4 100.110.89.38 | CALAKM01 (NEW 10/19) | `LP Telecom` | no USB Zebra; **`ZD420 LEFT`** = station 1's UPC Zebra via UNC port `\\DESKTOP-BQ2D6JS\ZD420LEFT` (11/03, needs st-1 on); **HP 9130e default** (local queue → UNC port `\\DESKTOP-NC5RQH1\HP9130e`, needs st-2 on); Epson XP-15000 WSD | test page 10/19 18:17 | joined 10/19 18:01; Connect installed, not signed in |
 
 All three: queues Normal, 0 stuck jobs, 0 PrintService/Admin errors since 9/25, and Connect is running.
 `LG-ConnectWatchdog` has **both triggers** (at-logon + a 5-min clock trigger) on all three and last ran 0x0. The clock trigger
