@@ -131,3 +131,7 @@ Wi-Fi is present but not joined. The GK420t has no print server.
   per device (`tools-set-shipstation-print-to.js` works for a station's own browser).
 
 Resume: `cd ~/projects/lg-warehouse-stations && cat STATUS.md`, then SSH to the station in question (table above).
+
+## 2026-11-04 — label print tools (abe5dc0)
+- `tools-print-labels-station3.sh <pdf…>`: any 4x6 label PDF (PirateShip, carrier site) → ZPL via `tools-pdf2zpl.py` (300 dpi, 1200x1800, **rotated 180°** per York) → scp → raw print on lg-station-3's ZD420-300dpi; prints 'sent' per label + queue count. Runner deliberately has no `Get-Printer` (hangs over ssh) and no `&` chaining (ssh shell = PowerShell).
+- Used 11/04 for 3 PirateShip UPS RI labels (#46359, GP1684, 193PV-C740B_125); those printed unrotated before the rule, rotation is on from the next print.
